@@ -1,0 +1,57 @@
+name: 毎日のOPENストーリーズ
+
+on:
+  schedule:
+    # 火〜日 10:45（日本時間）に起動し、11:00ちょうどまで待って投稿
+    - cron: "45 10 * * 0,2-6"
+      timezone: "Asia/Tokyo"
+  workflow_dispatch:
+    inputs:
+      test_now:
+        description: "テスト：待たずに今すぐ投稿（定休日でも投稿）"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-open-story
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install pillow==12.*
+
+      - name: 今日の画像を作る
+        id: prep
+        env:
+          FORCE: ${{ inputs.test_now && '1' || '' }}
+        run: python story.py prepare
+
+      - name: 画像を公開（リポジトリに保存）
+        if: steps.prep.outputs.skip == 'false'
+        run: |
+          git config user.name "open-story-bot"
+          git config user.email "open-story-bot@users.noreply.github.com"
+          git add -A out
+          git commit -m "story: ${{ steps.prep.outputs.image }}" || echo "変更なし"
+          git push
+          sleep 20
+
+      - name: ストーリーズに投稿
+        if: steps.prep.outputs.skip == 'false'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/out
+          SKIP_WAIT: ${{ inputs.test_now && '1' || '' }}
+        run: python story.py post "${{ steps.prep.outputs.image }}"
