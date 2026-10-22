@@ -22,9 +22,10 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 ROOT = Path(__file__).resolve().parent
-PHOTOS = ROOT / "photos"
+# フォルダ分けされていても、全部がリポジトリ直下に置かれていても動くようにする
+PHOTOS = ROOT / "photos" if (ROOT / "photos").is_dir() else ROOT
 OUT = ROOT / "out"
-FONT = ROOT / "fonts" / "InterDisplay-Bold.otf"
+FONT = next(p for p in [ROOT / "fonts" / "InterDisplay-Bold.otf", ROOT / "InterDisplay-Bold.otf"] if p.exists())
 JST = dt.timezone(dt.timedelta(hours=9))
 API = "https://graph.instagram.com/v25.0"
 W, H = 1080, 1920
