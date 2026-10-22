@@ -1,0 +1,28 @@
+name: トークン自動更新
+
+on:
+  schedule:
+    # 毎月1日と15日 3:17（日本時間）。トークンは60日有効なので余裕をもって更新
+    - cron: "17 3 1,15 * *"
+      timezone: "Asia/Tokyo"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow==12.*
+      - name: 新しいトークンを取得して保存し直す
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          NEW_TOKEN_FILE: ${{ runner.temp }}/t
+        run: |
+          python story.py refresh
+          echo "::add-mask::$(cat "$NEW_TOKEN_FILE")"
+          gh secret set IG_ACCESS_TOKEN --repo "${{ github.repository }}" < "$NEW_TOKEN_FILE"
+          rm -f "$NEW_TOKEN_FILE"

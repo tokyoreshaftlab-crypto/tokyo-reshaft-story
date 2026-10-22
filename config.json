@@ -1,0 +1,15 @@
+{
+  "_説明": "ストーリーズOPEN告知の設定。写真は photos フォルダに入れるだけで自動的に使われます。",
+  "post_time_jst": "11:00",
+  "closed_weekdays": ["Mon"],
+  "skip_dates": [],
+  "text": "OPEN",
+  "font_size": 110,
+  "letter_spacing": 14,
+  "layout_rules": {
+    "_説明": "写真ごとに使わないレイアウト番号（1=左上 2=左下 3=中央 4=右下 5=下中央）",
+    "A22A0472.jpg": [1, 3],
+    "A22A0489.jpg": [1, 3]
+  },
+  "keep_history_days": 14
+}
