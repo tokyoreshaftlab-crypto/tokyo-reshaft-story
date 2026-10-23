@@ -215,6 +215,11 @@ def main():
             print(f"本日は{reason}のため投稿しません")
             Path(os.environ.get("GITHUB_OUTPUT", os.devnull)).open("a").write("skip=true\n")
             return
+        posted = OUT / "last_posted.txt"
+        if not os.environ.get("FORCE") and posted.exists() and posted.read_text().strip() == today.isoformat():
+            print("本日はすでに投稿済みのため、二重投稿しません")
+            Path(os.environ.get("GITHUB_OUTPUT", os.devnull)).open("a").write("skip=true\n")
+            return
         out, photo, layout = render(today, cfg)
         cleanup(cfg, today)
         print(f"作成: {out.name}（{photo} / レイアウト{layout}）")
@@ -226,6 +231,8 @@ def main():
         name = sys.argv[2] if len(sys.argv) > 2 else f"{today.strftime('%Y%m%d')}.jpg"
         wait_until_post_time(cfg)
         post_story(f"{base}/{name}", token)
+        OUT.mkdir(exist_ok=True)
+        (OUT / "last_posted.txt").write_text(today.isoformat())
 
     elif cmd == "refresh":
         token = os.environ["IG_ACCESS_TOKEN"]
