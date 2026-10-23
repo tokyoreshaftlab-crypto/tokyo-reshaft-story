@@ -2,9 +2,8 @@ name: トークン自動更新
 
 on:
   schedule:
-    # 毎月1日と15日 3:17（日本時間）。トークンは60日有効なので余裕をもって更新
+    # 時刻はUTC。毎月1日と15日の 12:17（日本時間）。トークンは60日有効なので余裕をもって更新
     - cron: "17 3 1,15 * *"
-      timezone: "Asia/Tokyo"
   workflow_dispatch:
 
 jobs:
