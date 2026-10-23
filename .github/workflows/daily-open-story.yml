@@ -2,9 +2,10 @@ name: 毎日のOPENストーリーズ
 
 on:
   schedule:
-    # 火〜日 10:45（日本時間）に起動し、11:00ちょうどまで待って投稿
-    - cron: "45 10 * * 0,2-6"
-      timezone: "Asia/Tokyo"
+    # 時刻はUTC（日本時間-9時間）。火〜日の 10:40 と 11:10（日本時間）に起動
+    # 1回目で11:00ちょうどに投稿。1回目が起動しなかった日だけ2回目が投稿（二重投稿はしない）
+    - cron: "40 1 * * 0,2-6"
+    - cron: "10 2 * * 0,2-6"
   workflow_dispatch:
     inputs:
       test_now:
@@ -55,3 +56,10 @@ jobs:
           IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/out
           SKIP_WAIT: ${{ inputs.test_now && '1' || '' }}
         run: python story.py post "${{ steps.prep.outputs.image }}"
+
+      - name: 投稿済みを記録
+        if: steps.prep.outputs.skip == 'false'
+        run: |
+          git add -A out
+          git commit -m "posted: ${{ steps.prep.outputs.image }}" || echo "変更なし"
+          git pull --rebase && git push
